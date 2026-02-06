@@ -1,0 +1,21 @@
+{
+  "init_params": {
+    "document_text": "Your document text here...",
+    "summary_length": "concise",
+    "model": "gpt-4o-mini"
+  },
+  "step_configs": {
+    "summarize": {
+      "activity": "litellm_chat",
+      "model_path": "init_params.model",
+      "system_prompt": "You are an expert at summarizing documents. Create clear, accurate summaries that capture the key points.",
+      "user_prompt_template": "Please provide a {{summary_length}} summary of the following document:\n\n{{document_text}}",
+      "user_prompt_params": {
+        "summary_length_path": "init_params.summary_length",
+        "document_text_path": "init_params.document_text"
+      },
+      "temperature": 0.3
+    }
+  },
+  "steps": ["summarize"]
+}

@@ -1,0 +1,18 @@
+{
+  "init_params": {
+    "prompt": "Hello, how are you?",
+    "model": "gpt-4o-mini",
+    "system_prompt": "You are a helpful assistant.",
+    "temperature": 0.7
+  },
+  "step_configs": {
+    "chat": {
+      "activity": "litellm_chat",
+      "model_path": "init_params.model",
+      "system_prompt_path": "init_params.system_prompt",
+      "user_prompt_path": "init_params.prompt",
+      "temperature_path": "init_params.temperature"
+    }
+  },
+  "steps": ["chat"]
+}

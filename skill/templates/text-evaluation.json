@@ -1,0 +1,32 @@
+{
+  "init_params": {
+    "content_to_evaluate": "The content to be evaluated goes here.",
+    "evaluation_criteria": "Evaluate for clarity, accuracy, and professionalism.",
+    "scale_min": 1,
+    "scale_max": 10,
+    "model": "gpt-4o"
+  },
+  "step_configs": {
+    "score": {
+      "activity": "simple_judge",
+      "items_path": "init_params.content_to_evaluate",
+      "instruction_path": "init_params.evaluation_criteria",
+      "judge_type": "scale",
+      "scale_range": [1, 10],
+      "with_explanation": true,
+      "model_path": "init_params.model",
+      "temperature": 0.3
+    },
+    "categorize": {
+      "activity": "simple_judge",
+      "items_path": "init_params.content_to_evaluate",
+      "instruction": "Categorize the overall quality level",
+      "judge_type": "categorical",
+      "categories": ["excellent", "good", "fair", "poor"],
+      "with_explanation": true,
+      "model_path": "init_params.model",
+      "temperature": 0.2
+    }
+  },
+  "steps": ["score", "categorize"]
+}

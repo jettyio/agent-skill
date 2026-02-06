@@ -1,0 +1,12 @@
+{
+  "init_params": {
+    "text": "Hello, Jetty!"
+  },
+  "step_configs": {
+    "echo": {
+      "activity": "text_echo",
+      "text_path": "init_params.text"
+    }
+  },
+  "steps": ["echo"]
+}
