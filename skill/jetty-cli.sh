@@ -367,7 +367,7 @@ jetty_trajectories() {
   _jetty_check_jq || return 1
 
   curl -sf -H "$(_jetty_auth_header)" \
-    "$JETTY_FLOWS_API/api/v1/db/trajectories/$collection/$task?limit=$limit" | jq -r '.[] | "\(.id)\t\(.status)\t\(.created_at)"' | column -t -s $'\t'
+    "$JETTY_FLOWS_API/api/v1/db/trajectories/$collection/$task?limit=$limit" | jq -r '.trajectories[] | "\(.trajectory_id)\t\(.status)\t\(.created // "N/A")"' | column -t -s $'\t'
 }
 
 # Get trajectory details
@@ -405,7 +405,7 @@ jetty_last_output() {
 
   local traj_id
   traj_id=$(curl -sf -H "$(_jetty_auth_header)" \
-    "$JETTY_FLOWS_API/api/v1/db/trajectories/$collection/$task?limit=1" | jq -r '.[0].id')
+    "$JETTY_FLOWS_API/api/v1/db/trajectories/$collection/$task?limit=1" | jq -r '.trajectories[0].trajectory_id')
 
   if [ -z "$traj_id" ] || [ "$traj_id" == "null" ]; then
     echo -e "${_JETTY_RED}No trajectories found${_JETTY_NC}" >&2

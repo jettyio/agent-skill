@@ -25,6 +25,12 @@ Both `instruction` and `item`/`items` are **required** at runtime even though th
 
 The `score_range` parameter doesn't produce a numeric score in categorical mode. It uses the range values as category labels (e.g., `"1"` through `"5"` as string labels). If you need true numeric scoring, use `judge_type: "scale"` with `scale_range`.
 
+## URL disambiguation
+
+- **`flows-api.jetty.io`** — The API for running workflows, logs, trajectories, file downloads. Use this for all API calls.
+- **`flows.jetty.io`** — The web frontend. Do NOT use this for API calls — it returns HTML, not JSON.
+- **`dock.jetty.io`** — The API for managing collections, tasks, datasets, models.
+
 ## API token usage
 
 The token must be passed directly in the `Authorization` header:

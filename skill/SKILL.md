@@ -11,40 +11,35 @@ This skill enables you to interact with the Jetty platform to manage and run AI/
 
 | Service | Base URL | Purpose |
 |---------|----------|---------|
-| **Flows API** | `https://flows-api.jetty.io` | Run workflows, view logs, trajectories |
+| **Flows API** | `https://flows-api.jetty.io` | Run workflows, view logs, trajectories, download files |
 | **Dock API** | `https://dock.jetty.io` | Manage collections, tasks, datasets, models |
+| **Frontend** | `https://flows.jetty.io` | Web UI only — do NOT use for API calls |
 
 ---
 
-## Quick Start
+## CRITICAL: Authentication
 
-### 1. Authentication Setup
+**Read the API token from the project's CLAUDE.md file and inline it directly in every curl command.**
+
+Do NOT use `$TOKEN` — it is not set as an environment variable. Instead:
+1. Read the token from CLAUDE.md (look for `mlc_` prefix)
+2. Pass it directly in the Authorization header as a literal string
 
 ```bash
-# Check if token is already set
-if [ -z "$JETTY_API_TOKEN" ]; then
-  echo "JETTY_API_TOKEN not set. Please provide your API token."
-else
-  echo "Token is configured: ${JETTY_API_TOKEN:0:10}..."
-fi
-```
+# CORRECT — inline the token directly
+curl -s -H "Authorization: Bearer mlc_ACTUAL_TOKEN_HERE" "https://dock.jetty.io/api/v1/collections/" | jq
 
-All API requests require a Bearer token in the Authorization header:
-```bash
-curl -H "Authorization: Bearer $JETTY_API_TOKEN" ...
+# WRONG — env var is not set, will fail with 401
+curl -s -H "Authorization: Bearer $TOKEN" ...
 ```
-
-### 2. Collection Scope (Important!)
 
 API keys are scoped to specific collections. Your token only works with collections it has access to.
 
-```bash
-# List your accessible collections first
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
-  "https://dock.jetty.io/api/v1/collections/" | jq '.[].name'
-```
+## CRITICAL: URL Disambiguation
 
-### 3. Verify Setup
+- **`flows-api.jetty.io`** — The API for running workflows, logs, trajectories, files. Use this.
+- **`flows.jetty.io`** — The web frontend. Do NOT use this for API calls (returns HTML 404).
+- **`dock.jetty.io`** — The API for managing collections, tasks, datasets, models.
 
 ```bash
 # Health check both APIs
@@ -56,19 +51,21 @@ curl -s "https://dock.jetty.io/api/v1/health" | jq
 
 ## Core Operations Reference
 
+**In all examples below, `$TOKEN` means the literal token string read from CLAUDE.md. Always set it at the start of your bash command: `TOKEN="mlc_..."` then use `$TOKEN` in curl.**
+
 ### Collections
 
 ```bash
 # List all collections
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/collections/" | jq
 
 # Get collection details
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/collections/{COLLECTION}" | jq
 
 # Create a collection
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   "https://dock.jetty.io/api/v1/collections/" \
   -d '{"name": "my-collection", "description": "My workflows"}' | jq
@@ -78,19 +75,19 @@ curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
 
 ```bash
 # List tasks in a collection
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/tasks/{COLLECTION}/" | jq
 
 # Get task details (includes workflow definition)
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/tasks/{COLLECTION}/{TASK}" | jq
 
 # Search tasks
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/tasks/{COLLECTION}/search?q={QUERY}" | jq
 
 # Create task
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   "https://dock.jetty.io/api/v1/tasks/{COLLECTION}" \
   -d '{
@@ -104,13 +101,13 @@ curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
   }' | jq
 
 # Update task
-curl -s -X PUT -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X PUT -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   "https://dock.jetty.io/api/v1/tasks/{COLLECTION}/{TASK}" \
   -d '{"workflow": {...}, "description": "Updated"}' | jq
 
 # Delete task
-curl -s -X DELETE -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X DELETE -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/tasks/{COLLECTION}/{TASK}" | jq
 ```
 
@@ -118,19 +115,19 @@ curl -s -X DELETE -H "Authorization: Bearer $JETTY_API_TOKEN" \
 
 ```bash
 # Run async (returns immediately with workflow_id)
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -F "bakery_host=https://dock.jetty.io" \
   -F 'init_params={"key": "value"}' \
   "https://flows-api.jetty.io/api/v1/run/{COLLECTION}/{TASK}" | jq
 
 # Run sync (waits for completion)
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -F "bakery_host=https://dock.jetty.io" \
   -F 'init_params={"key": "value"}' \
   "https://flows-api.jetty.io/api/v1/run-sync/{COLLECTION}/{TASK}" | jq
 
 # Run with file upload
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -F "bakery_host=https://dock.jetty.io" \
   -F 'init_params={"prompt": "Analyze this document"}' \
   -F "files=@/path/to/file.pdf" \
@@ -141,20 +138,40 @@ curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
 
 ```bash
 # Get workflow logs
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://flows-api.jetty.io/api/v1/workflows-logs/{WORKFLOW_ID}" | jq
 
 # List trajectories (execution history)
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
-  "https://flows-api.jetty.io/api/v1/db/trajectories/{COLLECTION}/{TASK}?limit=20" | jq
+# IMPORTANT: Response is {"trajectories": [...], "total": N, "page": N, "limit": N, "has_more": bool}
+# Access the array via .trajectories, NOT the top-level object
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://flows-api.jetty.io/api/v1/db/trajectories/{COLLECTION}/{TASK}?limit=20" | jq '.trajectories'
 
-# Get trajectory details
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+# Get trajectory details (returns a single trajectory object)
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://flows-api.jetty.io/api/v1/db/trajectory/{COLLECTION}/{TASK}/{TRAJECTORY_ID}" | jq
 
 # Get workflow statistics
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://flows-api.jetty.io/api/v1/db/stats/{COLLECTION}/{TASK}" | jq
+```
+
+### Download Files
+
+Generated files (images, JSON outputs, etc.) can be downloaded using their full path from trajectory data.
+
+```bash
+# Download a generated file (e.g., image from replicate_text2image)
+# The path comes from trajectory: .steps.{STEP}.outputs.images[0].path or .outputs.files[].path
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://flows-api.jetty.io/api/v1/file/{FULL_FILE_PATH}" \
+  -o output_file.jpg
+
+# Example: download an image from a trajectory
+# Path: "jettyio/my-task/0000/abc123.generate_image.0000.jpg"
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://flows-api.jetty.io/api/v1/file/jettyio/my-task/0000/abc123.generate_image.0000.jpg" \
+  -o image.jpg
 ```
 
 ### Labels
@@ -163,7 +180,7 @@ Labels allow you to annotate trajectories with key-value metadata for categoriza
 
 ```bash
 # Add a label to a trajectory
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   "https://flows-api.jetty.io/api/v1/trajectory/{COLLECTION}/{TASK}/{TRAJECTORY_ID}/labels" \
   -d '{
@@ -174,19 +191,19 @@ curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
 
 # Common label examples
 # Quality rating
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   "https://flows-api.jetty.io/api/v1/trajectory/{COLLECTION}/{TASK}/{TRAJECTORY_ID}/labels" \
   -d '{"key": "quality", "value": "high", "author": "user@example.com"}' | jq
 
 # Classification tag
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   "https://flows-api.jetty.io/api/v1/trajectory/{COLLECTION}/{TASK}/{TRAJECTORY_ID}/labels" \
   -d '{"key": "category", "value": "production", "author": "user@example.com"}' | jq
 
 # Feedback annotation
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   "https://flows-api.jetty.io/api/v1/trajectory/{COLLECTION}/{TASK}/{TRAJECTORY_ID}/labels" \
   -d '{"key": "feedback", "value": "needs-improvement", "author": "user@example.com"}' | jq
@@ -212,15 +229,15 @@ curl -s "https://flows-api.jetty.io/api/v1/step-templates/{ACTIVITY}" | jq
 
 ```bash
 # List datasets
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/datasets/{COLLECTION}" | jq
 
 # Get dataset details
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/datasets/{COLLECTION}/{DATASET}" | jq
 
 # Create dataset
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   "https://dock.jetty.io/api/v1/datasets/{COLLECTION}" \
   -d '{"name": "my-dataset", "description": "Dataset description"}' | jq
@@ -230,11 +247,11 @@ curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
 
 ```bash
 # List models
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/models/{COLLECTION}/" | jq
 
 # Get model details
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://dock.jetty.io/api/v1/models/{COLLECTION}/{MODEL}" | jq
 ```
 
@@ -457,7 +474,7 @@ step1.inputs.prompt             # Input that was passed to step1
 
 ```bash
 # 1. Create the task
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   "https://dock.jetty.io/api/v1/tasks/{COLLECTION}" \
   -d '{
@@ -473,35 +490,36 @@ curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
   }' | jq
 
 # 2. Run it synchronously
-curl -s -X POST -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -F "bakery_host=https://dock.jetty.io" \
   -F 'init_params={"text": "Test message"}' \
   "https://flows-api.jetty.io/api/v1/run-sync/{COLLECTION}/test-echo" | jq
 
-# 3. Check the result in trajectory
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
-  "https://flows-api.jetty.io/api/v1/db/trajectories/{COLLECTION}/test-echo?limit=1" | jq
+# 3. Check the result in trajectory (.trajectories[0] to get first result)
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://flows-api.jetty.io/api/v1/db/trajectories/{COLLECTION}/test-echo?limit=1" | jq '.trajectories[0]'
 ```
 
 ### Workflow: Debug a Failed Run
 
 ```bash
-# 1. Get recent trajectories
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
-  "https://flows-api.jetty.io/api/v1/db/trajectories/{COLLECTION}/{TASK}?limit=5" | jq
+# 1. Get recent trajectories (note: response wraps array in .trajectories)
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://flows-api.jetty.io/api/v1/db/trajectories/{COLLECTION}/{TASK}?limit=5" \
+  | jq '.trajectories[] | {trajectory_id, status, error}'
 
 # 2. Get trajectory details (find the failed one)
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://flows-api.jetty.io/api/v1/db/trajectory/{COLLECTION}/{TASK}/{TRAJECTORY_ID}" | jq
 
 # 3. Check workflow logs
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://flows-api.jetty.io/api/v1/workflows-logs/{WORKFLOW_ID}" | jq
 
-# 4. Examine the step that failed
-curl -s -H "Authorization: Bearer $JETTY_API_TOKEN" \
+# 4. Examine the step that failed (steps is an object keyed by step name, not an array)
+curl -s -H "Authorization: Bearer $TOKEN" \
   "https://flows-api.jetty.io/api/v1/db/trajectory/{COLLECTION}/{TASK}/{TRAJECTORY_ID}" \
-  | jq '.steps[] | select(.status == "failed")'
+  | jq '.steps | to_entries[] | select(.value.status == "failed") | {step: .key, error: .value}'
 ```
 
 ### Workflow: List Available Activities
@@ -549,7 +567,7 @@ curl -s "https://flows-api.jetty.io/api/v1/step-templates/litellm_chat" | jq
 
 1. **Always use jq** - Format responses for readability
 2. **Quote JSON properly** - Escape special characters in curl
-3. **Set token in environment** - Avoid exposing tokens in commands
+3. **Inline the token** - Read from CLAUDE.md, set as `TOKEN="mlc_..."` at start of bash command, then use `$TOKEN`
 4. **Handle errors** - Check response status codes
 
 ---
@@ -557,8 +575,8 @@ curl -s "https://flows-api.jetty.io/api/v1/step-templates/litellm_chat" | jq
 ## Tips
 
 - Use `jq -r '.field'` to extract specific fields without quotes
-- Use `jq '.[0]'` to get the first item from an array
+- Use `jq '.trajectories[0]'` to get the first trajectory from list results
 - Use `jq 'keys'` to see available fields in a response
 - Pipe to `jq -C` for colored output
 - Use `curl -v` for debugging request/response issues
-- Set `JETTY_API_TOKEN` in your shell profile (`~/.bashrc` or `~/.zshrc`)
+- Always set `TOKEN="mlc_..."` inline in bash commands — do not rely on env vars being set across shell invocations

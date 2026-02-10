@@ -95,6 +95,16 @@ Content-Type: application/json
 }
 ```
 
+### Download Files
+
+Download generated files (images, JSON outputs, etc.) using their full path from trajectory data.
+
+```
+GET /api/v1/file/{full_file_path}
+```
+
+The file path comes from trajectory step outputs, e.g. `.steps.generate_image.outputs.images[0].path`.
+
 ### Step Templates
 
 ```

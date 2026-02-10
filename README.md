@@ -158,8 +158,9 @@ Jetty is a platform for running AI/ML workflows. It provides two main APIs:
 
 | Service | Base URL | Purpose |
 |---------|----------|---------|
-| **Flows API** | `https://flows-api.jetty.io` | Run workflows, view logs, trajectories |
+| **Flows API** | `https://flows-api.jetty.io` | Run workflows, view logs, trajectories, download files |
 | **Dock API** | `https://dock.jetty.io` | Manage collections, tasks, datasets, models |
+| **Frontend** | `https://flows.jetty.io` | Web UI only — do NOT use for API calls |
 
 ### Key concepts
 
