@@ -2,10 +2,16 @@
 name: jetty
 description: Manage Jetty workflows and assets. Use when the user wants to create/edit/run workflows, manage collections, tasks, datasets, or models on Jetty. Triggers include "run workflow", "create task", "list collections", "check trajectory", "label trajectory", "add label", "deploy workflow", or any Jetty/mise/dock operations.
 argument-hint: [command] [args]
-allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
+allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch, AskUserQuestion
 ---
 
 # Jetty Workflow Management Skill
+
+## FIRST STEP: Ask for the Collection
+
+Before doing any work, you MUST ask the user which collection to use. Use AskUserQuestion with the header "Collection" and ask "Which Jetty collection should I use?". If you already know the collection from the user's message or prior context, you can skip this step.
+
+---
 
 This skill enables you to interact with the Jetty platform to manage and run AI/ML workflows. Jetty provides two main APIs:
 
@@ -302,16 +308,44 @@ step1.inputs.prompt             # Input that was passed to step1
 
 ---
 
+## CRITICAL: Runtime Parameter Gotchas
+
+The step template documentation and the actual runtime parameters **differ** for several activities. These mismatches will cause silent failures. Always use the runtime names below.
+
+### `litellm_chat`
+- Use `prompt` / `prompt_path` (NOT `user_prompt` / `user_prompt_path`)
+- `system_prompt` / `system_prompt_path` works as documented
+
+### `replicate_text2image`
+- Outputs are at **`.outputs.images[0].path`** (NOT `.outputs.storage_path` or `.outputs.image_url`)
+- The `.path` value is a storage path like `collection/task/0000/abc123.step_name.0000.webp`
+- Also available: `.outputs.images[0].extension`, `.outputs.images[0].content_type`
+
+### `litellm_vision`
+- To pass a **storage path** from a previous step, use `image_path_expr` (NOT `image_url_path`)
+- `image_url_path` is for external HTTP URLs only
+- Example: `"image_path_expr": "generate_image.outputs.images[0].path"`
+
+### `simple_judge`
+- Use `item` / `item_path` (NOT `content` / `content_path`)
+- Use `instruction` / `instruction_path` (NOT `criteria` / `criteria_path`)
+- For multiple items use `items` / `items_path`
+- **Supports images**: pass a storage path (e.g., `.webp`, `.png`, `.jpg`) as `item_path` and it auto-converts for vision models
+- `score_range` in categorical mode uses range values as category labels, not numeric scores
+
+---
+
 ## Common Step Templates
 
 ### AI Models
 
 | Activity | Purpose | Key Parameters |
 |----------|---------|----------------|
-| `litellm_chat` | Universal LLM chat | `model`, `system_prompt`, `user_prompt`, `temperature` |
-| `gemini_generate` | Google Gemini | `model`, `prompt`, `temperature` |
-| `replicate_run` | Replicate models | `model`, `input` |
-| `vision_model` | Image analysis | `model`, `image_path`, `prompt` |
+| `litellm_chat` | Universal LLM chat | `model`, `prompt`/`prompt_path`, `system_prompt`, `temperature` |
+| `litellm_vision` | Image analysis with LLM | `model`, `prompt`, `image_path_expr` (storage) or `image_url_path` (URL) |
+| `gemini_prompt` | Google Gemini | `model`, `prompt`, `temperature` |
+| `replicate_text2image` | Text-to-image via Replicate | `model`, `prompt`/`prompt_path`, `width`, `height` |
+| `replicate_text2video` | Text-to-video via Replicate | `model`, `prompt`/`prompt_path` |
 
 ### Control Flow
 
@@ -319,21 +353,22 @@ step1.inputs.prompt             # Input that was passed to step1
 |----------|---------|----------------|
 | `list_emit_await` | Fan-out parallel execution | `items_path`, `child_workflow_name`, `max_concurrency` |
 | `extract_from_trajectories` | Fan-in gather results | `trajectory_ids_path`, `extract_paths` |
-| `conditional_step` | Conditional branching | `condition_path`, `true_step`, `false_step` |
+| `conditional_branch` | Conditional branching | `condition_path`, `true_step`, `false_step` |
 
 ### Data Processing
 
 | Activity | Purpose | Key Parameters |
 |----------|---------|----------------|
 | `text_echo` | Pass through text | `text` or `text_path` |
-| `text_split` | Split text into chunks | `text_path`, `chunk_size`, `overlap` |
-| `json_transform` | Transform JSON | `input_path`, `jmespath_query` |
+| `text_template` | Template text with variables | `template`, variable paths |
+| `text_concatenate` | Concatenate text | `texts_path` |
+| `split_text` | Split text into chunks | `text_path`, `chunk_size`, `overlap` |
 
 ### Evaluation
 
 | Activity | Purpose | Key Parameters |
 |----------|---------|----------------|
-| `simple_judge` | LLM-as-judge evaluation | `items`, `instruction`, `judge_type`, `model` |
+| `simple_judge` | LLM-as-judge (text + images) | `item`/`item_path`, `instruction`, `model`, `score_range` |
 
 ---
 
@@ -352,7 +387,7 @@ step1.inputs.prompt             # Input that was passed to step1
       "activity": "litellm_chat",
       "model_path": "init_params.model",
       "system_prompt": "You are a helpful assistant.",
-      "user_prompt_path": "init_params.prompt",
+      "prompt_path": "init_params.prompt",
       "temperature": 0.7
     }
   },
@@ -377,35 +412,33 @@ step1.inputs.prompt             # Input that was passed to step1
 }
 ```
 
-### Template 3: Model Comparison
+### Template 3: Model Comparison (with simple_judge)
 
 ```json
 {
   "init_params": {
-    "prompt": "Explain quantum computing in simple terms",
-    "models": ["gpt-4o", "claude-3-sonnet-20240229"]
+    "prompt": "Explain quantum computing in simple terms"
   },
   "step_configs": {
     "model_a": {
       "activity": "litellm_chat",
       "model": "gpt-4o",
-      "user_prompt_path": "init_params.prompt",
+      "prompt_path": "init_params.prompt",
       "temperature": 0.7
     },
     "model_b": {
       "activity": "litellm_chat",
       "model": "claude-3-sonnet-20240229",
-      "user_prompt_path": "init_params.prompt",
+      "prompt_path": "init_params.prompt",
       "temperature": 0.7
     },
     "compare": {
       "activity": "simple_judge",
-      "items": ["model_a.outputs.text", "model_b.outputs.text"],
+      "items_path": ["model_a.outputs.text", "model_b.outputs.text"],
       "instruction": "Compare these responses for clarity and accuracy",
-      "judge_type": "categorical",
-      "categories": ["first_better", "second_better", "tie"],
-      "with_explanation": true,
-      "model": "gpt-4o"
+      "model": "gpt-4o",
+      "score_range": {"min": 1, "max": 5},
+      "explanation_required": true
     }
   },
   "steps": ["model_a", "model_b", "compare"]
@@ -444,7 +477,7 @@ step1.inputs.prompt             # Input that was passed to step1
 }
 ```
 
-### Template 5: Image Generation
+### Template 5: Image Generation (replicate_text2image)
 
 ```json
 {
@@ -453,16 +486,57 @@ step1.inputs.prompt             # Input that was passed to step1
   },
   "step_configs": {
     "generate": {
-      "activity": "replicate_run",
+      "activity": "replicate_text2image",
       "model": "black-forest-labs/flux-schnell",
-      "input": {
-        "prompt_path": "init_params.prompt",
-        "num_outputs": 1,
-        "aspect_ratio": "16:9"
-      }
+      "prompt_path": "init_params.prompt",
+      "width": 1024,
+      "height": 768,
+      "num_outputs": 1
     }
   },
   "steps": ["generate"]
+}
+```
+
+**Output path**: `generate.outputs.images[0].path` (storage path for the image file)
+
+### Template 6: Image Generation + Vision Judge Pipeline
+
+This is a verified, working pipeline that generates an image and evaluates it with a vision model.
+
+```json
+{
+  "init_params": {
+    "prompt": "a detective in the rain"
+  },
+  "step_configs": {
+    "expand_prompt": {
+      "activity": "litellm_chat",
+      "model": "gpt-4o-mini",
+      "system_prompt": "You are a scene writer. Expand the prompt into a vivid visual description for image generation. Output ONLY the description, under 200 words.",
+      "prompt_path": "init_params.prompt",
+      "temperature": 0.9,
+      "max_tokens": 300
+    },
+    "generate_image": {
+      "activity": "replicate_text2image",
+      "model": "black-forest-labs/flux-schnell",
+      "prompt_path": "expand_prompt.outputs.text",
+      "width": 1024,
+      "height": 768,
+      "num_outputs": 1
+    },
+    "judge_image": {
+      "activity": "simple_judge",
+      "model": "gpt-4o",
+      "item_path": "generate_image.outputs.images[0].path",
+      "instruction": "Evaluate the quality of this generated image. Score 1-5.",
+      "score_range": {"min": 1, "max": 5},
+      "explanation_required": true,
+      "temperature": 0.1
+    }
+  },
+  "steps": ["expand_prompt", "generate_image", "judge_image"]
 }
 ```
 
@@ -525,11 +599,11 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 ### Workflow: List Available Activities
 
 ```bash
-# Get all step templates with their parameters
-curl -s "https://flows-api.jetty.io/api/v1/step-templates" | jq '.[] | {name: .name, description: .description}'
+# Get all step template names (note: response is {templates: [...], categories: [...], total_count: N})
+curl -s "https://flows-api.jetty.io/api/v1/step-templates" | jq '[.templates[] | .activity_name]'
 
 # Get details for a specific activity
-curl -s "https://flows-api.jetty.io/api/v1/step-templates/litellm_chat" | jq
+curl -s "https://flows-api.jetty.io/api/v1/step-templates" | jq '.templates[] | select(.activity_name == "litellm_chat")'
 ```
 
 ---
@@ -572,6 +646,37 @@ curl -s "https://flows-api.jetty.io/api/v1/step-templates/litellm_chat" | jq
 
 ---
 
+## Batch Runs
+
+When running multiple workflows (e.g., test suites), write a bash script to `/tmp` and execute it. The Bash tool has escaping issues with inline arrays and functions.
+
+```bash
+# Write script to /tmp, then run with: bash /tmp/batch_run.sh
+#!/bin/bash
+TOKEN="mlc_ACTUAL_TOKEN"
+
+run_wf() {
+  local prompt="$1"
+  echo "--- $prompt"
+  curl -s -X POST -H "Authorization: Bearer $TOKEN" \
+    -F "bakery_host=https://dock.jetty.io" \
+    -F "init_params={\"prompt\": \"$prompt\"}" \
+    "https://flows-api.jetty.io/api/v1/run/{COLLECTION}/{TASK}" | jq -r '.workflow_id'
+}
+
+run_wf "test prompt 1"
+run_wf "test prompt 2"
+```
+
+After launching, wait ~45-60 seconds, then check statuses:
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://flows-api.jetty.io/api/v1/db/trajectories/{COLLECTION}/{TASK}?limit=10" \
+  | jq '[.trajectories[] | {id: .trajectory_id, status: .status}]'
+```
+
+---
+
 ## Tips
 
 - Use `jq -r '.field'` to extract specific fields without quotes
@@ -580,3 +685,5 @@ curl -s "https://flows-api.jetty.io/api/v1/step-templates/litellm_chat" | jq
 - Pipe to `jq -C` for colored output
 - Use `curl -v` for debugging request/response issues
 - Always set `TOKEN="mlc_..."` inline in bash commands — do not rely on env vars being set across shell invocations
+- When a workflow fails, check error logs first: `jq '.events[] | select(.level == "error")'`
+- The `init_params` for a trajectory are at `.init_params.prompt`, NOT `.steps.{step}.inputs.prompt`
