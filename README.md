@@ -1,89 +1,31 @@
-# Jetty Agent Skill for Claude Code
+# Jetty Plugin for Claude Code
 
-A comprehensive [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill for managing and running AI/ML workflows on the [Jetty](https://jetty.io) platform.
+Build, run, and monitor AI/ML workflows on [Jetty](https://jetty.io) — from prompt to production in 5 minutes.
 
-## What is this?
-
-This is a **Claude Code skill** -- a reusable package of instructions, shell helpers, and workflow templates that enables Claude Code to interact with the Jetty platform on your behalf. Once installed, you can use the `/jetty` slash command inside Claude Code to:
-
-- Create and manage workflow tasks
-- Run workflows synchronously or asynchronously
-- Monitor trajectories and execution logs
-- Browse step templates
-- Label and annotate trajectories
-- Manage collections, datasets, and models
-
-## Prerequisites
-
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI installed
-- A Jetty account at [dock.jetty.io](https://dock.jetty.io)
-- A Jetty API token (format: `mlc_xxxxxxxxxxxxx`)
-- `jq` installed for JSON parsing (`brew install jq` on macOS, `apt install jq` on Linux)
-- `curl` for API requests
-
-## Installation
-
-### Option 1: Copy into your project (recommended)
+## Quick Start
 
 ```bash
-# Clone this repository
-git clone https://github.com/jettyio/agent-skill.git
+# Install the plugin
+claude plugin add github:jettyio/jetty-plugin
 
-# Copy the skill into your project's .claude/skills/ directory
-mkdir -p /path/to/your-project/.claude/skills/
-cp -r agent-skill/skill /path/to/your-project/.claude/skills/jetty
+# Run the setup wizard
+/jetty-setup
 ```
 
-### Option 2: Copy to your global Claude Code skills
+The setup wizard will:
+1. Open your browser to create a Jetty account (or use an existing one)
+2. Configure your API key
+3. Let you choose OpenAI or Gemini for image generation
+4. Deploy and run a demo workflow — the **Cute Feline Detector** (prompt → image → AI judge)
+5. Download the results to your machine
 
-```bash
-# Clone this repository
-git clone https://github.com/jettyio/agent-skill.git
+## What's Inside
 
-# Copy to your global skills directory
-mkdir -p ~/.claude/skills/
-cp -r agent-skill/skill ~/.claude/skills/jetty
-```
+### `/jetty-setup` — First-time Setup
+Guided onboarding that gets you from zero to running your first workflow. Handles account creation, API key configuration, provider selection (BYOK), and a demo run.
 
-### Option 3: Quick install (one-liner)
-
-```bash
-mkdir -p ~/.claude/skills/ && \
-  git clone https://github.com/jettyio/agent-skill.git /tmp/jetty-skill && \
-  cp -r /tmp/jetty-skill/skill ~/.claude/skills/jetty && \
-  rm -rf /tmp/jetty-skill
-```
-
-### Configure your API token
-
-Add your Jetty API token to your project's `CLAUDE.md` file or set it as an environment variable:
-
-**Option A: In CLAUDE.md (project-level)**
-```markdown
-I have a Jetty API token: mlc_your_token_here
-```
-
-**Option B: Environment variable**
-```bash
-# Add to ~/.bashrc or ~/.zshrc
-export JETTY_API_TOKEN="mlc_your_token_here"
-```
-
-### Verify installation
-
-Open Claude Code in your project and run:
-
-```
-/jetty list collections
-```
-
-If your token is valid and has collection access, you should see your collections listed.
-
-## Usage
-
-### Inside Claude Code
-
-Use the `/jetty` slash command followed by natural language:
+### `/jetty` — Full Workflow Management
+The main skill for day-to-day Jetty operations:
 
 ```
 /jetty list collections
@@ -94,142 +36,97 @@ Use the `/jetty` slash command followed by natural language:
 /jetty add label quality=high to trajectory abc123 in my-project/my-task
 ```
 
-### Shell Functions (standalone CLI)
+## Prerequisites
 
-You can also source the shell helper script for direct terminal usage:
-
-```bash
-# Source the helper functions
-source ~/.claude/skills/jetty/jetty-cli.sh
-
-# Check connectivity
-jetty_health
-
-# List resources
-jetty_collections
-jetty_tasks my-project
-
-# Run a workflow
-jetty_run_sync my-project my-task '{"prompt": "Hello"}'
-
-# Monitor execution
-jetty_trajectories my-project my-task
-jetty_last_output my-project my-task
-
-# Browse available activities
-jetty_templates
-jetty_search_templates "chat"
-```
-
-Run `jetty_help` for the full list of available commands.
-
-## Repository Structure
-
-```
-agent-skill/
-  skill/                  # The skill package (copy this to .claude/skills/jetty)
-    SKILL.md              # Skill definition with YAML frontmatter (Claude Code reads this)
-    README.md             # Internal skill documentation
-    jetty-cli.sh          # Shell helper functions for terminal use
-    templates/            # Ready-to-use workflow JSON files
-      simple-chat.json
-      quick-chat.json
-      text-echo.json
-      model-comparison.json
-      text-evaluation.json
-      batch-processor.json
-      document-summarizer.json
-      image-generation.json
-    examples/             # Complete workflow examples with descriptions
-      simple-chat.json
-      document-qa.json
-      fan-out-analysis.json
-  docs/
-    api-reference.md      # Complete Jetty API reference
-    workflow-guide.md     # Guide to building Jetty workflows
-    gotchas.md            # Known gotchas and workarounds
-  README.md               # This file
-  LICENSE                 # MIT License
-```
-
-## Jetty Platform Overview
-
-Jetty is a platform for running AI/ML workflows. It provides two main APIs:
-
-| Service | Base URL | Purpose |
-|---------|----------|---------|
-| **Flows API** | `https://flows-api.jetty.io` | Run workflows, view logs, trajectories, download files |
-| **Dock API** | `https://dock.jetty.io` | Manage collections, tasks, datasets, models |
-| **Frontend** | `https://flows.jetty.io` | Web UI only — do NOT use for API calls |
-
-### Key concepts
-
-- **Collection**: A namespace grouping related tasks, datasets, and models
-- **Task**: A named workflow definition containing steps
-- **Workflow**: A JSON document with `init_params`, `step_configs`, and `steps`
-- **Trajectory**: A record of a single workflow execution
-- **Step Template (Activity)**: A reusable operation like `litellm_chat`, `text_echo`, or `simple_judge`
-- **Labels**: Key-value annotations on trajectories for categorization and filtering
-- **Path Expressions**: JSONPath-like references (e.g., `init_params.prompt`, `step1.outputs.text`) for dynamic data flow between steps
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
+- `jq` (`brew install jq` on macOS, `apt install jq` on Linux)
+- `curl`
+- An OpenAI or Google Gemini API key (for image generation workflows)
 
 ## Workflow Templates
 
-The skill includes ready-to-use workflow templates:
+Ready-to-use workflow templates are included:
 
 | Template | Description |
 |----------|-------------|
-| `simple-chat.json` | LLM chat with system prompt and temperature control |
-| `quick-chat.json` | Minimal single-step chat |
-| `text-echo.json` | Simple echo for testing |
-| `model-comparison.json` | Compare two LLM responses with an AI judge |
-| `text-evaluation.json` | Score and categorize text using LLM-as-judge |
-| `batch-processor.json` | Fan-out parallel item processing |
-| `document-summarizer.json` | Configurable document summarization |
-| `image-generation.json` | Image generation with Replicate |
+| **cute-feline-detector-openai** | Prompt → DALL-E 3 image → GPT-4o cuteness judge |
+| **cute-feline-detector-gemini** | Prompt → Gemini image → Gemini Flash cuteness judge |
+| simple-chat | Basic LLM chat with system prompt |
+| model-comparison | Compare two LLM responses with an AI judge |
+| image-generation | Text-to-image with Replicate/FLUX |
+| text-evaluation | Score and categorize text with LLM-as-judge |
+| batch-processor | Fan-out parallel processing |
+| document-summarizer | Configurable document summarization |
 
-### Using templates
+## Alternative Installation
+
+### From source (development)
 
 ```bash
-# Create a task from a template
-jetty_create_task my-project my-chat templates/simple-chat.json "My chat task"
-
-# Run it
-jetty_run_sync my-project my-chat '{"prompt": "Explain REST APIs"}'
+git clone https://github.com/jettyio/jetty-plugin.git
+claude --plugin-dir ./jetty-plugin
 ```
 
-Or inside Claude Code:
+### Manual copy
+
+```bash
+git clone https://github.com/jettyio/jetty-plugin.git /tmp/jetty-plugin
+cp -r /tmp/jetty-plugin ~/.claude/plugins/jetty
 ```
-/jetty create a task called my-chat in my-project using the simple-chat template
+
+## Shell Functions (standalone CLI)
+
+For direct terminal usage without Claude Code:
+
+```bash
+export JETTY_API_TOKEN="mlc_your_token_here"
+source path/to/skills/jetty/jetty-cli.sh
+
+jetty_health                                    # Check connectivity
+jetty_collections                               # List collections
+jetty_run_sync my-project my-task '{"prompt": "Hello"}'  # Run a workflow
+jetty_trajectories my-project my-task           # View execution history
+jetty_help                                      # Full command reference
 ```
 
-## Getting Your API Token
+## How It Works
 
-1. Log in to [dock.jetty.io](https://dock.jetty.io)
-2. Navigate to **Settings** -> **API Tokens**
-3. Click **Create Token**
-4. Copy the token (format: `mlc_xxxxxxxxxxxxx`)
+Jetty runs AI/ML workflows defined as JSON pipelines. Each workflow has:
+- **init_params** — Input parameters (e.g., a prompt)
+- **step_configs** — Pipeline steps (e.g., LLM call → image generation → judge)
+- **steps** — Execution order
 
-API keys are scoped to specific collections. Ensure your token has access to the collections you want to work with.
+Example — the Cute Feline Detector:
+```
+User prompt → Expand to vivid description → Generate cat image → Judge cuteness (1-5)
+```
+
+Results are stored as **trajectories** with full step-by-step outputs, downloadable files, and labeling support.
+
+## Platform Overview
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Flows API | `flows-api.jetty.io` | Run workflows, trajectories, files |
+| Dock API | `dock.jetty.io` | Collections, tasks, datasets |
+| Web UI | `flows.jetty.io` | Dashboard and management |
 
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
-| "Invalid or expired token" | Regenerate your token at dock.jetty.io -> Settings -> API Tokens |
-| "Access denied to collection" | Verify the collection name and that your token has access |
-| "jq: command not found" | Install jq: `brew install jq` (macOS) or `apt install jq` (Linux) |
-| Workflow fails silently | Check logs: `jetty_logs <workflow_id>`, review the trajectory details |
-| `/jetty` command not found | Ensure the skill is in `.claude/skills/jetty/` and `SKILL.md` exists |
-| `simple_judge` not working | Use `item`/`items` (not `content`), `instruction` (not `criteria`). See [gotchas](docs/gotchas.md) |
+| "Invalid or expired token" | Regenerate at flows.jetty.io → Settings → API Tokens |
+| "Access denied" | Verify your token has access to the collection |
+| `jq` not found | `brew install jq` (macOS) or `apt install jq` (Linux) |
+| `/jetty-setup` not found | Reinstall: `claude plugin add github:jettyio/jetty-plugin` |
+| Workflow fails | Use `/jetty show logs for <workflow_id>` to debug |
 
-## Contributing
+## Documentation
 
-1. Fork this repository
-2. Create a feature branch: `git checkout -b feature/my-improvement`
-3. Commit your changes: `git commit -m "Add my improvement"`
-4. Push: `git push origin feature/my-improvement`
-5. Open a Pull Request
+- [API Reference](docs/api-reference.md)
+- [Workflow Building Guide](docs/workflow-guide.md)
+- [Known Gotchas](docs/gotchas.md)
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](LICENSE) for details.
