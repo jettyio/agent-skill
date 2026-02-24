@@ -1,0 +1,11 @@
+{
+  "name": "jetty",
+  "description": "Build, run, and monitor AI/ML workflows on Jetty — from prompt to production in 5 minutes.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jetty AI",
+    "url": "https://jetty.io"
+  },
+  "repository": "https://github.com/jettyio/jetty-plugin"
+}
