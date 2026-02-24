@@ -121,8 +121,19 @@ Results are stored as **trajectories** with full step-by-step outputs, downloada
 | `/jetty-setup` not found | Reinstall: `claude plugin add github:jettyio/jetty-plugin` |
 | Workflow fails | Use `/jetty show logs for <workflow_id>` to debug |
 
+## Other AI Tools (Cursor, Gemini CLI, Codex, etc.)
+
+Jetty also ships an MCP server that works with **any** MCP-compatible AI tool — no `jq` or `curl` required.
+
+```bash
+npx -y @jettyio/jetty-mcp-server
+```
+
+See [docs/integrations.md](docs/integrations.md) for configuration snippets for Cursor, Gemini CLI, Codex CLI, and more.
+
 ## Documentation
 
+- [AI Tool Integrations](docs/integrations.md)
 - [API Reference](docs/api-reference.md)
 - [Workflow Building Guide](docs/workflow-guide.md)
 - [Known Gotchas](docs/gotchas.md)

@@ -1,0 +1,3 @@
+startCommand:
+  command: npx
+  args: ["-y", "@jettyio/jetty-mcp-server"]

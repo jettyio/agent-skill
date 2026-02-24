@@ -1,0 +1,11 @@
+{
+  "name": "jetty",
+  "version": "1.0.0",
+  "mcpServers": {
+    "jetty": {
+      "command": "npx",
+      "args": ["-y", "@jettyio/jetty-mcp-server"],
+      "env": { "JETTY_API_TOKEN": "" }
+    }
+  }
+}
