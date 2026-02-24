@@ -15,7 +15,9 @@ Jetty's MCP server works with any tool that supports the [Model Context Protocol
 claude plugin add github:jettyio/jetty-plugin
 ```
 
-### MCP server
+This gives you the MCP tools plus `/jetty-setup` (guided onboarding) and `/jetty` (natural language workflow management).
+
+### MCP server only
 
 ```bash
 claude mcp add jetty -- npx -y jetty-mcp-server
@@ -51,6 +53,70 @@ Add to `.cursor/mcp.json` in your project root:
 }
 ```
 
+## VS Code Copilot
+
+Add to `.vscode/mcp.json` in your project root:
+
+```json
+{
+  "servers": {
+    "jetty": {
+      "command": "npx",
+      "args": ["-y", "jetty-mcp-server"],
+      "env": { "JETTY_API_TOKEN": "mlc_your_token" }
+    }
+  }
+}
+```
+
+Or run `MCP: Add Server` from the Command Palette and select "stdio", then enter `npx -y jetty-mcp-server`.
+
+## Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "jetty": {
+      "command": "npx",
+      "args": ["-y", "jetty-mcp-server"],
+      "env": { "JETTY_API_TOKEN": "mlc_your_token" }
+    }
+  }
+}
+```
+
+Or install from the MCP Marketplace via Windsurf Settings (⌘,).
+
+## Zed
+
+Add to your Zed settings (`~/.config/zed/settings.json`):
+
+```json
+{
+  "context_servers": {
+    "jetty": {
+      "command": {
+        "path": "npx",
+        "args": ["-y", "jetty-mcp-server"],
+        "env": { "JETTY_API_TOKEN": "mlc_your_token" }
+      }
+    }
+  }
+}
+```
+
+Verify the server is running via the Agent Panel — the indicator dot should be green.
+
+## Gemini CLI
+
+```bash
+gemini extensions install gemini-extension.json
+```
+
+The `gemini-extension.json` file is included in the repo root. Set `JETTY_API_TOKEN` in your environment before running Gemini CLI.
+
 ## Codex CLI
 
 Add to `~/.codex/config.json`:
@@ -72,14 +138,6 @@ Or pass directly:
 ```bash
 codex --mcp-server "npx -y jetty-mcp-server"
 ```
-
-## Gemini CLI
-
-```bash
-gemini extensions install gemini-extension.json
-```
-
-The `gemini-extension.json` file is included in the repo root. Set `JETTY_API_TOKEN` in your environment before running Gemini CLI.
 
 ## Generic MCP Client
 

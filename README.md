@@ -1,31 +1,197 @@
-# Jetty Plugin for Claude Code
+# Jetty — AI/ML Workflows for Any Agent
 
-Build, run, and monitor AI/ML workflows on [Jetty](https://jetty.io) — from prompt to production in 5 minutes.
+Build, run, and monitor AI/ML workflows on [Jetty](https://jetty.io) from any AI coding tool. Works with Claude Code, Cursor, VS Code Copilot, Windsurf, Zed, Gemini CLI, Codex CLI, and any MCP-compatible agent.
 
-## Quick Start
+## Install in Your Tool
+
+Jetty uses the [Model Context Protocol](https://modelcontextprotocol.io) (MCP) to connect to your agent. Pick your tool below.
+
+### Claude Code
+
+**Plugin (recommended)** — includes guided setup wizard and workflow skills:
 
 ```bash
-# Install the plugin
 claude plugin add github:jettyio/jetty-plugin
-
-# Run the setup wizard
-/jetty-setup
 ```
 
-The setup wizard will:
-1. Open your browser to create a Jetty account (or use an existing one)
-2. Configure your API key
-3. Let you choose OpenAI or Gemini for image generation
-4. Deploy and run a demo workflow — the **Cute Feline Detector** (prompt → image → AI judge)
-5. Download the results to your machine
+Then run `/jetty-setup` to get started interactively.
 
-## What's Inside
+**MCP server only:**
 
-### `/jetty-setup` — First-time Setup
-Guided onboarding that gets you from zero to running your first workflow. Handles account creation, API key configuration, provider selection (BYOK), and a demo run.
+```bash
+claude mcp add jetty -- npx -y jetty-mcp-server
+```
 
-### `/jetty` — Full Workflow Management
-The main skill for day-to-day Jetty operations:
+Or add to your project's `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "jetty": {
+      "command": "npx",
+      "args": ["-y", "jetty-mcp-server"],
+      "env": { "JETTY_API_TOKEN": "mlc_your_token" }
+    }
+  }
+}
+```
+
+### Cursor
+
+Add to `.cursor/mcp.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "jetty": {
+      "command": "npx",
+      "args": ["-y", "jetty-mcp-server"],
+      "env": { "JETTY_API_TOKEN": "mlc_your_token" }
+    }
+  }
+}
+```
+
+### VS Code Copilot
+
+Add to `.vscode/mcp.json` in your project root:
+
+```json
+{
+  "servers": {
+    "jetty": {
+      "command": "npx",
+      "args": ["-y", "jetty-mcp-server"],
+      "env": { "JETTY_API_TOKEN": "mlc_your_token" }
+    }
+  }
+}
+```
+
+Or run `MCP: Add Server` from the Command Palette.
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "jetty": {
+      "command": "npx",
+      "args": ["-y", "jetty-mcp-server"],
+      "env": { "JETTY_API_TOKEN": "mlc_your_token" }
+    }
+  }
+}
+```
+
+### Zed
+
+Add to your Zed settings (`~/.config/zed/settings.json`):
+
+```json
+{
+  "context_servers": {
+    "jetty": {
+      "command": {
+        "path": "npx",
+        "args": ["-y", "jetty-mcp-server"],
+        "env": { "JETTY_API_TOKEN": "mlc_your_token" }
+      }
+    }
+  }
+}
+```
+
+### Gemini CLI
+
+```bash
+gemini extensions install gemini-extension.json
+```
+
+Set `JETTY_API_TOKEN` in your environment before running Gemini CLI. The `gemini-extension.json` file is included in this repo.
+
+### Codex CLI
+
+Add to `~/.codex/config.json`:
+
+```json
+{
+  "mcpServers": {
+    "jetty": {
+      "command": "npx",
+      "args": ["-y", "jetty-mcp-server"],
+      "env": { "JETTY_API_TOKEN": "mlc_your_token" }
+    }
+  }
+}
+```
+
+### Any Other MCP Client
+
+```bash
+JETTY_API_TOKEN=mlc_your_token npx -y jetty-mcp-server
+```
+
+The server communicates over stdio using the MCP protocol.
+
+---
+
+## Get Your API Token
+
+1. Sign up at [flows.jetty.io](https://flows.jetty.io/sign-up)
+2. Go to **Settings → API Tokens**
+3. Create a token (starts with `mlc_`)
+4. Add it to your tool's config as shown above
+
+---
+
+## First-Time Setup
+
+Once connected, ask your agent to help you get started. This works in **any** MCP-connected tool — just paste the prompt below into your agent's chat:
+
+> Set up Jetty for me. List my collections, then deploy the cute-feline-detector demo workflow using the `create-task` tool with [this workflow JSON](skills/jetty/templates/cute-feline-detector-openai.json). Then run it with `run-workflow` using the prompt "a fluffy orange tabby cat sitting in a sunbeam". Poll `list-trajectories` until it completes, then show me the results with `get-trajectory`.
+
+Before running the demo, store your AI provider key in your collection's environment variables. Ask your agent:
+
+> Use the Jetty `get-collection` tool to check my collection's environment variables. I need to add my OpenAI API key (or Gemini API key) so workflows can use it.
+
+**Claude Code users:** Just run `/jetty-setup` instead — the guided wizard handles all of this automatically.
+
+---
+
+## Available MCP Tools
+
+Once connected, your agent has access to 14 tools:
+
+| Tool | Description |
+|------|-------------|
+| `list-collections` | List all collections (workspaces) |
+| `get-collection` | Get collection details and environment variable keys |
+| `list-tasks` | List tasks (workflows) in a collection |
+| `get-task` | Get task details and workflow definition |
+| `create-task` | Create a new task with a workflow |
+| `update-task` | Update a task's workflow or description |
+| `run-workflow` | Run a workflow asynchronously |
+| `run-workflow-sync` | Run a workflow synchronously (blocks until done) |
+| `list-trajectories` | List recent workflow runs |
+| `get-trajectory` | Get full run details with step outputs |
+| `get-stats` | Get execution statistics |
+| `add-label` | Label a trajectory (e.g., quality=high) |
+| `list-step-templates` | List available step templates |
+| `get-step-template` | Get template details and schema |
+
+---
+
+## Claude Code Skills
+
+The plugin adds two skills for richer Claude Code integration:
+
+### `/jetty-setup` — Guided Onboarding
+Interactive wizard that handles account creation, API key storage, provider selection (OpenAI or Gemini), and runs a demo workflow — all in under 5 minutes.
+
+### `/jetty` — Natural Language Workflow Management
 
 ```
 /jetty list collections
@@ -36,16 +202,11 @@ The main skill for day-to-day Jetty operations:
 /jetty add label quality=high to trajectory abc123 in my-project/my-task
 ```
 
-## Prerequisites
-
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
-- `jq` (`brew install jq` on macOS, `apt install jq` on Linux)
-- `curl`
-- An OpenAI or Google Gemini API key (for image generation workflows)
+---
 
 ## Workflow Templates
 
-Ready-to-use workflow templates are included:
+Ready-to-use templates are in [`skills/jetty/templates/`](skills/jetty/templates/):
 
 | Template | Description |
 |----------|-------------|
@@ -54,29 +215,16 @@ Ready-to-use workflow templates are included:
 | simple-chat | Basic LLM chat with system prompt |
 | model-comparison | Compare two LLM responses with an AI judge |
 | image-generation | Text-to-image with Replicate/FLUX |
-| text-evaluation | Score and categorize text with LLM-as-judge |
 | batch-processor | Fan-out parallel processing |
 | document-summarizer | Configurable document summarization |
 
-## Alternative Installation
+Use the `create-task` MCP tool to deploy any template to your collection.
 
-### From source (development)
+---
 
-```bash
-git clone https://github.com/jettyio/jetty-plugin.git
-claude --plugin-dir ./jetty-plugin
-```
+## Shell Functions (Standalone CLI)
 
-### Manual copy
-
-```bash
-git clone https://github.com/jettyio/jetty-plugin.git /tmp/jetty-plugin
-cp -r /tmp/jetty-plugin ~/.claude/plugins/jetty
-```
-
-## Shell Functions (standalone CLI)
-
-For direct terminal usage without Claude Code:
+For direct terminal usage without any AI tool:
 
 ```bash
 export JETTY_API_TOKEN="mlc_your_token_here"
@@ -89,6 +237,8 @@ jetty_trajectories my-project my-task           # View execution history
 jetty_help                                      # Full command reference
 ```
 
+---
+
 ## How It Works
 
 Jetty runs AI/ML workflows defined as JSON pipelines. Each workflow has:
@@ -96,14 +246,9 @@ Jetty runs AI/ML workflows defined as JSON pipelines. Each workflow has:
 - **step_configs** — Pipeline steps (e.g., LLM call → image generation → judge)
 - **steps** — Execution order
 
-Example — the Cute Feline Detector:
-```
-User prompt → Expand to vivid description → Generate cat image → Judge cuteness (1-5)
-```
-
 Results are stored as **trajectories** with full step-by-step outputs, downloadable files, and labeling support.
 
-## Platform Overview
+## Platform
 
 | Service | URL | Purpose |
 |---------|-----|---------|
@@ -111,25 +256,11 @@ Results are stored as **trajectories** with full step-by-step outputs, downloada
 | Dock API | `dock.jetty.io` | Collections, tasks, datasets |
 | Web UI | `flows.jetty.io` | Dashboard and management |
 
-## Troubleshooting
+## Prerequisites
 
-| Problem | Solution |
-|---------|----------|
-| "Invalid or expired token" | Regenerate at flows.jetty.io → Settings → API Tokens |
-| "Access denied" | Verify your token has access to the collection |
-| `jq` not found | `brew install jq` (macOS) or `apt install jq` (Linux) |
-| `/jetty-setup` not found | Reinstall: `claude plugin add github:jettyio/jetty-plugin` |
-| Workflow fails | Use `/jetty show logs for <workflow_id>` to debug |
-
-## Other AI Tools (Cursor, Gemini CLI, Codex, etc.)
-
-Jetty also ships an MCP server that works with **any** MCP-compatible AI tool — no `jq` or `curl` required.
-
-```bash
-npx -y jetty-mcp-server
-```
-
-See [docs/integrations.md](docs/integrations.md) for configuration snippets for Cursor, Gemini CLI, Codex CLI, and more.
+- Node.js 18+ (for the MCP server via `npx`)
+- A Jetty API token ([get one here](https://flows.jetty.io/sign-up))
+- An OpenAI or Google Gemini API key (for image generation workflows)
 
 ## Documentation
 
@@ -138,6 +269,16 @@ See [docs/integrations.md](docs/integrations.md) for configuration snippets for 
 - [Workflow Building Guide](docs/workflow-guide.md)
 - [Known Gotchas](docs/gotchas.md)
 
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| "Invalid or expired token" | Regenerate at flows.jetty.io → Settings → API Tokens |
+| "Access denied" | Verify your token has access to the collection |
+| MCP tools not showing up | Restart your editor/agent after config changes |
+| Workflow fails | Use `get-trajectory` to inspect step-by-step outputs |
+| `/jetty-setup` not found | Claude Code only — reinstall: `claude plugin add github:jettyio/jetty-plugin` |
+
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE) for details.
