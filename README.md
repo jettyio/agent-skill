@@ -126,7 +126,7 @@ Results are stored as **trajectories** with full step-by-step outputs, downloada
 Jetty also ships an MCP server that works with **any** MCP-compatible AI tool — no `jq` or `curl` required.
 
 ```bash
-npx -y @jettyio/jetty-mcp-server
+npx -y jetty-mcp-server
 ```
 
 See [docs/integrations.md](docs/integrations.md) for configuration snippets for Cursor, Gemini CLI, Codex CLI, and more.

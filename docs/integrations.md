@@ -18,7 +18,7 @@ claude plugin add github:jettyio/jetty-plugin
 ### MCP server
 
 ```bash
-claude mcp add jetty -- npx -y @jettyio/jetty-mcp-server
+claude mcp add jetty -- npx -y jetty-mcp-server
 ```
 
 Or add to your project's `.mcp.json`:
@@ -28,7 +28,7 @@ Or add to your project's `.mcp.json`:
   "mcpServers": {
     "jetty": {
       "command": "npx",
-      "args": ["-y", "@jettyio/jetty-mcp-server"],
+      "args": ["-y", "jetty-mcp-server"],
       "env": { "JETTY_API_TOKEN": "mlc_your_token" }
     }
   }
@@ -44,7 +44,7 @@ Add to `.cursor/mcp.json` in your project root:
   "mcpServers": {
     "jetty": {
       "command": "npx",
-      "args": ["-y", "@jettyio/jetty-mcp-server"],
+      "args": ["-y", "jetty-mcp-server"],
       "env": { "JETTY_API_TOKEN": "mlc_your_token" }
     }
   }
@@ -60,7 +60,7 @@ Add to `~/.codex/config.json`:
   "mcpServers": {
     "jetty": {
       "command": "npx",
-      "args": ["-y", "@jettyio/jetty-mcp-server"],
+      "args": ["-y", "jetty-mcp-server"],
       "env": { "JETTY_API_TOKEN": "mlc_your_token" }
     }
   }
@@ -70,7 +70,7 @@ Add to `~/.codex/config.json`:
 Or pass directly:
 
 ```bash
-codex --mcp-server "npx -y @jettyio/jetty-mcp-server"
+codex --mcp-server "npx -y jetty-mcp-server"
 ```
 
 ## Gemini CLI
@@ -86,7 +86,7 @@ The `gemini-extension.json` file is included in the repo root. Set `JETTY_API_TO
 Any MCP-compatible tool can use Jetty. Run the server with:
 
 ```bash
-JETTY_API_TOKEN=mlc_your_token npx -y @jettyio/jetty-mcp-server
+JETTY_API_TOKEN=mlc_your_token npx -y jetty-mcp-server
 ```
 
 The server communicates over stdio using the MCP protocol.

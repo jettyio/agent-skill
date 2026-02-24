@@ -1,5 +1,5 @@
 {
-  "name": "@jettyio/jetty-mcp-server",
+  "name": "jetty-mcp-server",
   "version": "1.0.0",
   "description": "MCP server for Jetty AI/ML workflow platform",
   "type": "module",

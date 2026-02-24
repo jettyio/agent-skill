@@ -1,11 +1,11 @@
-# @jettyio/jetty-mcp-server
+# jetty-mcp-server
 
 MCP server for the [Jetty](https://jetty.io) AI/ML workflow platform. Works with Claude Code, Cursor, Gemini CLI, Codex, and any MCP-compatible tool.
 
 ## Quick Start
 
 ```bash
-npx -y @jettyio/jetty-mcp-server
+npx -y jetty-mcp-server
 ```
 
 Set your API token:
@@ -29,7 +29,7 @@ Get a token at [flows.jetty.io](https://flows.jetty.io) → Settings → API Tok
 ### Claude Code
 
 ```bash
-claude mcp add jetty -- npx -y @jettyio/jetty-mcp-server
+claude mcp add jetty -- npx -y jetty-mcp-server
 ```
 
 Or add to `.mcp.json`:
@@ -39,7 +39,7 @@ Or add to `.mcp.json`:
   "mcpServers": {
     "jetty": {
       "command": "npx",
-      "args": ["-y", "@jettyio/jetty-mcp-server"],
+      "args": ["-y", "jetty-mcp-server"],
       "env": { "JETTY_API_TOKEN": "mlc_your_token" }
     }
   }
@@ -55,7 +55,7 @@ Add to `.cursor/mcp.json`:
   "mcpServers": {
     "jetty": {
       "command": "npx",
-      "args": ["-y", "@jettyio/jetty-mcp-server"],
+      "args": ["-y", "jetty-mcp-server"],
       "env": { "JETTY_API_TOKEN": "mlc_your_token" }
     }
   }
@@ -71,7 +71,7 @@ gemini extensions install jetty-extension.json
 ### Generic MCP Client
 
 ```bash
-JETTY_API_TOKEN=mlc_your_token npx -y @jettyio/jetty-mcp-server
+JETTY_API_TOKEN=mlc_your_token npx -y jetty-mcp-server
 ```
 
 ## Tools
