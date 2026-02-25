@@ -2,6 +2,14 @@
 
 Build, run, and monitor AI/ML workflows on [Jetty](https://jetty.io) from any AI coding tool. Works with Claude Code, Cursor, VS Code Copilot, Windsurf, Zed, Gemini CLI, Codex CLI, and any MCP-compatible agent.
 
+## Quick Start (Claude Code)
+
+```bash
+claude plugin add github:jettyio/agent-skill
+```
+
+Then run `/jetty-setup` to create an account, configure your API key, and run your first workflow in under 5 minutes.
+
 ## Install in Your Tool
 
 Jetty uses the [Model Context Protocol](https://modelcontextprotocol.io) (MCP) to connect to your agent. Pick your tool below.
