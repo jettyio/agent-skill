@@ -117,10 +117,16 @@ Add to your Zed settings (`~/.config/zed/settings.json`):
 ### Gemini CLI
 
 ```bash
-gemini extensions install gemini-extension.json
+gemini extensions install https://github.com/jettyio/agent-skill
 ```
 
-Set `JETTY_API_TOKEN` in your environment before running Gemini CLI. The `gemini-extension.json` file is included in this repo.
+During installation, you'll be prompted for your Jetty API token. The extension registers the MCP server and loads context automatically.
+
+To install from a local clone instead:
+
+```bash
+gemini extensions install --path /path/to/agent-skill
+```
 
 ### Codex CLI
 

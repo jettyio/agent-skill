@@ -1,11 +1,22 @@
 {
   "name": "jetty",
+  "description": "Build, run, and monitor AI/ML workflows on Jetty — from prompt to production in 5 minutes.",
   "version": "1.0.0",
   "mcpServers": {
     "jetty": {
       "command": "npx",
       "args": ["-y", "jetty-mcp-server"],
-      "env": { "JETTY_API_TOKEN": "" }
+      "env": {
+        "JETTY_API_TOKEN": "${JETTY_API_TOKEN}"
+      }
     }
-  }
+  },
+  "settings": [
+    {
+      "name": "Jetty API Token",
+      "description": "Your Jetty API token (starts with mlc_). Get one at https://flows.jetty.io/sign-up → Settings → API Tokens.",
+      "envVariable": "JETTY_API_TOKEN"
+    }
+  ],
+  "contextFileName": "GEMINI.md"
 }
