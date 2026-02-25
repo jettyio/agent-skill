@@ -1,0 +1,22 @@
+{
+  "name": "jetty",
+  "owner": {
+    "name": "Jetty AI",
+    "email": "team@jetty.io"
+  },
+  "plugins": [
+    {
+      "name": "jetty",
+      "source": "./",
+      "description": "Build, run, and monitor AI/ML workflows on Jetty — from prompt to production in 5 minutes.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Jetty AI"
+      },
+      "homepage": "https://jetty.io",
+      "repository": "https://github.com/jettyio/agent-skill",
+      "license": "MIT",
+      "keywords": ["ai", "ml", "workflows", "jetty", "mcp"]
+    }
+  ]
+}

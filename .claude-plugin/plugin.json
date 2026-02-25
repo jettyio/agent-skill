@@ -7,5 +7,9 @@
     "name": "Jetty AI",
     "url": "https://jetty.io"
   },
-  "repository": "https://github.com/jettyio/agent-skill"
+  "repository": "https://github.com/jettyio/agent-skill",
+  "homepage": "https://jetty.io",
+  "keywords": ["ai", "ml", "workflows", "jetty", "mcp"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
 }

@@ -5,7 +5,8 @@ Build, run, and monitor AI/ML workflows on [Jetty](https://jetty.io) from any AI
 ## Quick Start (Claude Code)
 
 ```bash
-claude plugin add github:jettyio/agent-skill
+claude plugin marketplace add github:jettyio/agent-skill
+claude plugin install jetty@jetty
 ```
 
 Then run `/jetty-setup` to create an account, configure your API key, and run your first workflow in under 5 minutes.
@@ -16,10 +17,11 @@ Jetty uses the [Model Context Protocol](https://modelcontextprotocol.io) (MCP) t
 
 ### Claude Code
 
-**Plugin (recommended)** — includes guided setup wizard and workflow skills:
+**Plugin (recommended)** — includes guided setup wizard, workflow skills, and MCP tools:
 
 ```bash
-claude plugin add github:jettyio/agent-skill
+claude plugin marketplace add github:jettyio/agent-skill
+claude plugin install jetty@jetty
 ```
 
 Then run `/jetty-setup` to get started interactively.
@@ -285,7 +287,7 @@ Results are stored as **trajectories** with full step-by-step outputs, downloada
 | "Access denied" | Verify your token has access to the collection |
 | MCP tools not showing up | Restart your editor/agent after config changes |
 | Workflow fails | Use `get-trajectory` to inspect step-by-step outputs |
-| `/jetty-setup` not found | Claude Code only — reinstall: `claude plugin add github:jettyio/agent-skill` |
+| `/jetty-setup` not found | Claude Code only — reinstall: `claude plugin marketplace add github:jettyio/agent-skill && claude plugin install jetty@jetty` |
 
 ## License
 
