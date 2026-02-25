@@ -11,7 +11,7 @@ Jetty uses the [Model Context Protocol](https://modelcontextprotocol.io) (MCP) t
 **Plugin (recommended)** — includes guided setup wizard and workflow skills:
 
 ```bash
-claude plugin add github:jettyio/jetty-plugin
+claude plugin add github:jettyio/agent-skill
 ```
 
 Then run `/jetty-setup` to get started interactively.
@@ -277,7 +277,7 @@ Results are stored as **trajectories** with full step-by-step outputs, downloada
 | "Access denied" | Verify your token has access to the collection |
 | MCP tools not showing up | Restart your editor/agent after config changes |
 | Workflow fails | Use `get-trajectory` to inspect step-by-step outputs |
-| `/jetty-setup` not found | Claude Code only — reinstall: `claude plugin add github:jettyio/jetty-plugin` |
+| `/jetty-setup` not found | Claude Code only — reinstall: `claude plugin add github:jettyio/agent-skill` |
 
 ## License
 
