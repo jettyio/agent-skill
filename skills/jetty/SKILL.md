@@ -180,6 +180,35 @@ curl -s -H "Authorization: Bearer $TOKEN" \
   -o image.jpg
 ```
 
+### Update Trajectory Status
+
+Batch update trajectory statuses. Useful for fixing stuck trajectories (e.g., showing "running" after a failed cancel) or manually marking trajectories as cancelled/failed/archived.
+
+```bash
+# Batch update statuses for one or more trajectories
+# Valid statuses: "pending", "completed", "failed", "cancelled", "archived"
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://flows-api.jetty.io/api/v1/trajectory/{COLLECTION}/{TASK}/statuses" \
+  -d '{"TRAJECTORY_ID_1": "cancelled", "TRAJECTORY_ID_2": "cancelled"}' | jq
+
+# Example: fix stuck "running" trajectories after cancel
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://flows-api.jetty.io/api/v1/trajectory/{COLLECTION}/{TASK}/statuses" \
+  -d '{"abc123": "cancelled"}' | jq
+```
+
+Response:
+```json
+{
+  "results": [
+    {"trajectory_id": "abc123", "new_status": "cancelled", "updated": "2026-01-01T00:00:00", "storage_path": "...", "error": null}
+  ],
+  "updated_count": 1
+}
+```
+
 ### Labels
 
 Labels allow you to annotate trajectories with key-value metadata for categorization, tracking, and filtering.
