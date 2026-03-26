@@ -45,6 +45,30 @@ Workflows are JSON pipelines with three sections:
 - Trajectory list responses wrap the array: access via `.trajectories[]`
 - Steps in a trajectory are an object keyed by step name, not an array
 
+## Creating Runbooks
+
+A **runbook** is a structured markdown document that tells a coding agent how to accomplish a complex, multi-step task with built-in evaluation loops and quality gates. Unlike a simple prompt, a runbook includes iteration (evaluate → refine → re-evaluate), a defined output manifest, and a verification checklist.
+
+### When to use a runbook
+- The task requires **iteration** (first attempt is rarely sufficient)
+- The task requires **evaluation** against a quality bar
+- The task produces **multiple artifacts** that must be consistent
+- The task involves **external API calls** that can fail in domain-specific ways
+
+### Two evaluation patterns
+- **Programmatic** (`evaluation: programmatic`) — validate with code, schema, or tests (pass/fail)
+- **Rubric** (`evaluation: rubric`) — score against multi-criteria rubric (1-5 scale)
+
+### Runbook structure
+Every runbook includes: YAML frontmatter (version + evaluation type), Objective, REQUIRED OUTPUT FILES manifest, Parameters, Dependencies, processing steps, evaluation step, iteration loop (max 3 rounds), summary + `validation_report.json` output, and a final verification checklist.
+
+### Creating a runbook
+Use the starter templates in the `skills/create-runbook/templates/` directory:
+- `programmatic.md` — for data pipelines, schema validation, test-based evaluation
+- `rubric.md` — for creative content, reports, generated artifacts
+
+Copy the appropriate template, customize the sections for your task, and follow it as your agent instructions.
+
 ## Getting Help
 
 - Platform docs: https://jetty.io
