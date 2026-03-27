@@ -458,7 +458,7 @@ Runbooks evolve through use:
 
 ### Runbook Runner (`run-runbook.sh`)
 
-The agent-skill package includes a bash script for running runbooks locally or on Jetty. It reads a runbook's parameters from a JSON file, injects them as template variables, and invokes the agent.
+The jettyio-skills package includes a bash script for running runbooks locally or on Jetty. It reads a runbook's parameters from a JSON file, injects them as template variables, and invokes the agent.
 
 ```bash
 # Run a runbook locally with default parameters
@@ -514,7 +514,7 @@ This lets users review the agent's plan before committing to expensive API calls
 
 ### Runbook Validator (`validate-runbook.sh`)
 
-A script that checks a runbook for structural completeness without running it. Part of the agent-skill package.
+A script that checks a runbook for structural completeness without running it. Part of the jettyio-skills package.
 
 ```bash
 ./validate-runbook.sh path/to/RUNBOOK.md
@@ -690,7 +690,7 @@ Decisions made during PRD development, for context:
 
 1. **Evaluation patterns**: Two supported — `programmatic` and `rubric`. External/workflow-delegated judges are an implementation detail within `rubric`, not a separate pattern.
 2. **Dependencies section**: Required for any runbook that calls external APIs, workflows, or needs credentials.
-3. **Runbook validator**: Part of the agent-skill package. Checks structural completeness without running the runbook.
+3. **Runbook validator**: Part of the jettyio-skills package. Checks structural completeness without running the runbook.
 4. **Single-agent scope**: Runbooks assume one agent runs the whole thing. Nested agent orchestration is out of scope.
 5. **Versioning**: Semantic version in frontmatter. Sufficient for now — no platform-level version management.
 6. **Results directory**: `{{results_dir}}` defaults to `/app/results` on Jetty, `./results` locally.

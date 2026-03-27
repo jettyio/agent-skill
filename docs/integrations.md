@@ -12,7 +12,7 @@ Jetty's MCP server works with any tool that supports the [Model Context Protocol
 ### Plugin (recommended)
 
 ```bash
-claude plugin add github:jettyio/agent-skill
+claude plugin add github:jettyio/jettyio-skills
 ```
 
 This gives you the MCP tools plus `/jetty-setup` (guided onboarding), `/jetty` (natural language workflow management), and `/create-runbook` (guided runbook creation wizard).

@@ -16,9 +16,9 @@ Transform the Jetty agent skill into a polished Claude Code **plugin** with a 3-
 
 | Component | Status | Location |
 |-----------|--------|----------|
-| Skill definition (SKILL.md) | Working | `agent-skill/skill/SKILL.md` |
-| CLI helpers (jetty-cli.sh) | Working | `agent-skill/skill/jetty-cli.sh` |
-| 8 workflow templates | Working | `agent-skill/skill/templates/` |
+| Skill definition (SKILL.md) | Working | `jettyio-skills/skill/SKILL.md` |
+| CLI helpers (jetty-cli.sh) | Working | `jettyio-skills/skill/jetty-cli.sh` |
+| 8 workflow templates | Working | `jettyio-skills/skill/templates/` |
 | Clerk auth (web signup) | Working | `spot/` frontend |
 | Onboarding flow (web) | Working | `spot/src/app/onboarding/` |
 | Collection creation API | Working | `flows-api POST /api/v1/collections/` |
@@ -91,13 +91,13 @@ Step 6: Download & Summary                          [30s]
 
 ## 4. Systems to Touch
 
-### 4.1 Agent Skill → Plugin Conversion (`agent-skill/`)
+### 4.1 Agent Skill → Plugin Conversion (`jettyio-skills/`)
 
 **Gap:** Currently a bare skill directory. Needs full plugin packaging.
 
 **Changes:**
 ```
-agent-skill/
+jettyio-skills/
 ├── .claude-plugin/
 │   └── plugin.json                    # NEW: plugin manifest
 ├── skills/
@@ -361,7 +361,7 @@ Clerk already supports Google and GitHub OAuth. No additional work needed.
 2. Restructure directories: `skill/` → `skills/jetty/`
 3. Create the cute-feline-detector template (both variants)
 4. Update README with `claude plugin add` instructions
-5. Test installation via `claude --plugin-dir ./agent-skill`
+5. Test installation via `claude --plugin-dir ./jettyio-skills`
 
 ### Phase 2: Setup Skill (Day 1-2)
 
@@ -508,9 +508,9 @@ Submit PRs / listings to:
 
 | System | Changes | Effort |
 |--------|---------|--------|
-| `agent-skill/` | Plugin packaging, dir restructure, new setup skill, new templates | Medium |
+| `jettyio-skills/` | Plugin packaging, dir restructure, new setup skill, new templates | Medium |
 | `flows-api/` | None for v1 (all needed endpoints exist) | None |
 | `spot/` (frontend) | Verify API key visibility post-onboarding; optional "Claude Code" card | Low |
 | `flows-api/` | None (step templates already available) | None |
 
-**Total estimated systems affected:** 1-2 (agent-skill is the main work; spot is optional polish)
+**Total estimated systems affected:** 1-2 (jettyio-skills is the main work; spot is optional polish)
