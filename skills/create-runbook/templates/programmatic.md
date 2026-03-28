@@ -1,6 +1,11 @@
 ---
 version: "1.0.0"
 evaluation: programmatic
+secrets:                              # Optional — declare sensitive params here
+  # EXAMPLE_API_KEY:
+  #   env: EXAMPLE_API_KEY            # Collection env var name on Jetty / OS env var locally
+  #   description: "API key for ..."
+  #   required: true
 ---
 
 # {Task Name} — Agent Runbook
@@ -52,6 +57,14 @@ pip install {packages}
 
 # Create output directories
 mkdir -p {{results_dir}}
+
+# Verify required secrets are available (declared in frontmatter)
+# for var in SECRET_NAME_1 SECRET_NAME_2; do
+#   if [ -z "${!var}" ]; then
+#     echo "ERROR: $var is not set"
+#     exit 1
+#   fi
+# done
 ```
 
 Verify all required credentials and inputs are available before proceeding.
@@ -66,9 +79,11 @@ Verify all required credentials and inputs are available before proceeding.
 
 ```bash
 curl -s {API_ENDPOINT} \
-  -H "Authorization: Bearer {{api_token}}" \
+  -H "Authorization: Bearer ${{secrets.API_TOKEN}}" \
   -H "Content-Type: application/json"
 ```
+
+> **Note:** `{{secrets.*}}` values resolve to environment variables at runtime — collection env vars on Jetty, OS env vars locally. They are declared in the `secrets` frontmatter block and never appear in `init_params` or trajectories.
 
 ### Expected Response
 

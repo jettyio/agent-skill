@@ -135,6 +135,63 @@ Parameters define what varies between runs. They are injected by the caller (Jet
 
 **Results directory convention:** `{{results_dir}}` defaults to `/app/results` when running on Jetty (the sandbox convention) and `./results` when running locally.
 
+### Secrets
+
+Secrets declare sensitive parameters that should never appear in `init_params`, trajectories, or parameter files. They resolve from environment variables locally and collection environment variables on Jetty.
+
+```yaml
+---
+secrets:
+  LANGFUSE_SECRET_KEY:
+    env: LANGFUSE_SECRET_KEY
+    description: "Langfuse API secret key"
+    required: true
+  OPENAI_API_KEY:
+    env: OPENAI_API_KEY
+    description: "OpenAI API key for embeddings"
+    required: false
+---
+```
+
+#### Conventions
+
+- Keys are logical names referenced in the runbook as `{{secrets.LANGFUSE_SECRET_KEY}}`
+- `env` is the environment variable name — the collection env var on Jetty, the OS env var locally
+- The `{{secrets.*}}` prefix distinguishes secrets from regular `{{params}}`, enabling linting and preventing accidental logging
+
+#### Local Resolution Order
+
+1. **OS environment variable** matching the `env` field
+2. **`.env` file** in the runbook directory (standard dotenv format, already `.gitignore`d)
+3. **Interactive prompt** — if unresolved and `required: true`, ask the user once
+
+Secrets are never written to `params.json`.
+
+#### Jetty Resolution
+
+On Jetty, secrets resolve from **collection environment variables** at runtime. Steps access them via `$ENV_VAR` in bash or the `env.*` path namespace in step configs:
+
+```json
+{
+  "step_configs": {
+    "my_step": {
+      "activity": "litellm_chat",
+      "api_key_path": "env.OPENAI_API_KEY"
+    }
+  }
+}
+```
+
+For ad-hoc runs, the API accepts `secret_params` alongside `init_params`. These are merged into the runtime environment but never stored in trajectories.
+
+#### Deploy Preflight
+
+When deploying a runbook with `--jetty` mode:
+1. Parse `secrets` from frontmatter
+2. Check the target collection's configured environment variables
+3. Prompt to set any missing required secrets
+4. Package only non-secret params as `init_params`
+
 ### Dependencies
 
 ```markdown
@@ -145,6 +202,7 @@ Parameters define what varies between runs. They are injected by the caller (Jet
 | `collection/workflow-name` | Jetty workflow | Yes | {What it does} |
 | `https://api.example.com` | External API | Yes | {What it provides} |
 | `LANGFUSE_SECRET_KEY` | Credential | Yes | {Auth for what} |
+| `LANGFUSE_SECRET_KEY` | Secret (env var) | Yes | Auth for Langfuse — set via collection env vars |
 | `pandas` | Python package | Yes | {Used for what} |
 ```
 

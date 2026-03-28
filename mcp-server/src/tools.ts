@@ -219,4 +219,53 @@ export function registerTools(server: McpServer, client: JettyClient) {
       return jsonResult(await client.getStepTemplate(name));
     }
   );
+
+  // ── Environment Variables ─────────────────────────────────────
+
+  server.tool(
+    "check-secrets",
+    "Check which environment variables a collection has configured vs. what a runbook needs",
+    {
+      collection: z.string().describe("Collection name"),
+      required_keys: z
+        .array(z.string())
+        .describe("Environment variable names the runbook requires"),
+    },
+    async ({ collection, required_keys }) => {
+      const col = (await client.getCollection(collection)) as Record<
+        string,
+        unknown
+      >;
+      const envVars = (col.environment_variables || {}) as Record<
+        string,
+        unknown
+      >;
+      const configured = Object.keys(envVars);
+      const missing = required_keys.filter((k) => !configured.includes(k));
+      return jsonResult({
+        configured,
+        missing,
+        ready: missing.length === 0,
+      });
+    }
+  );
+
+  server.tool(
+    "set-environment-vars",
+    "Set environment variables on a collection (merge semantics, pass null to delete a key)",
+    {
+      collection: z.string().describe("Collection name"),
+      variables: z
+        .record(z.string().nullable())
+        .describe("Key-value pairs to set (null to delete)"),
+    },
+    async ({ collection, variables }) => {
+      return jsonResult(
+        await client.setEnvironmentVars(
+          collection,
+          variables as Record<string, string>
+        )
+      );
+    }
+  );
 }

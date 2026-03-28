@@ -1,6 +1,11 @@
 ---
 version: "1.0.0"
 evaluation: rubric
+secrets:                              # Optional — declare sensitive params here
+  # EXAMPLE_API_KEY:
+  #   env: EXAMPLE_API_KEY            # Collection env var name on Jetty / OS env var locally
+  #   description: "API key for ..."
+  #   required: true
 ---
 
 # {Task Name} — Agent Runbook
@@ -52,6 +57,14 @@ pip install {packages}
 
 # Create output directories
 mkdir -p {{results_dir}}
+
+# Verify required secrets are available (declared in frontmatter)
+# for var in SECRET_NAME_1 SECRET_NAME_2; do
+#   if [ -z "${!var}" ]; then
+#     echo "ERROR: $var is not set"
+#     exit 1
+#   fi
+# done
 ```
 
 Verify all required inputs and assets are available before proceeding.
