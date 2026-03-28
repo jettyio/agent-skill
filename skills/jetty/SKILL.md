@@ -240,6 +240,156 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" \
 
 `secret_params` are merged into the runtime environment (same as collection env vars) but are NEVER stored in the trajectory. Use this for one-off runs; for production, configure secrets as collection environment variables.
 
+### Run Runbook
+
+A runbook is a structured markdown document (`RUNBOOK.md`) that tells a coding agent how to accomplish a complex, multi-step task with evaluation loops and quality gates. Runbooks can be executed **locally** (the agent follows the runbook directly) or **remotely** on Jetty (via the chat-completions endpoint).
+
+#### Detect the mode
+
+When the user says "run runbook", determine the mode:
+
+- **"run runbook locally"** / **"follow the runbook"** / no explicit mode → **Local mode**
+- **"run runbook on Jetty"** / **"run runbook remotely"** / **"deploy runbook"** → **Remote mode**
+
+If ambiguous, use AskUserQuestion to ask.
+
+#### Local Mode
+
+The agent becomes the executor. Read the RUNBOOK.md and follow it step by step.
+
+1. Read the runbook file with the Read tool
+2. Parse the frontmatter for `version`, `evaluation` pattern, and `secrets`
+3. Parse the Parameters section — identify which parameters have defaults and which need values
+4. Ask the user for any required parameter values that are missing (use AskUserQuestion)
+5. For each secret declared in frontmatter, check if the env var is set: `echo "${SECRET_NAME:+SET}"`. If missing, prompt the user.
+6. Create the results directory: `mkdir -p {{results_dir}}`
+7. Follow each step in order — Environment Setup, Processing Steps, Evaluation, Iteration, Report, Final Checklist
+8. Write all output files to `{{results_dir}}` (defaults to `./results` locally)
+
+```bash
+# Example: user says "run the runbook with sample_size=5"
+mkdir -p ./results
+# Then follow each step from the RUNBOOK.md...
+```
+
+#### Remote Mode (Chat Completions API)
+
+Launch the runbook on Jetty's sandboxed infrastructure via the OpenAI-compatible chat-completions endpoint.
+
+**Endpoint:** `POST https://flows-api.jetty.io/v1/chat/completions`
+
+1. Read the runbook file with the Read tool
+2. Parse frontmatter for `secrets` — check that each required secret is configured as a collection env var:
+   ```bash
+   curl -s -H "Authorization: Bearer $TOKEN" \
+     "https://flows-api.jetty.io/api/v1/collections/{COLLECTION}/environment" | jq 'keys'
+   ```
+   If any required secrets are missing, prompt the user to set them (or pass via `secret_params`).
+3. Ask the user for the collection, task name, and agent (default: `claude-code`). Also ask for any file uploads.
+4. Build and send the request — the runbook content goes in the `system` message:
+
+```bash
+# Read the runbook content
+RUNBOOK_CONTENT="$(cat /path/to/RUNBOOK.md)"
+
+# Build the request payload
+cat <<PAYLOAD | curl -s -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://flows-api.jetty.io/v1/chat/completions" \
+  --data-binary @-
+{
+  "model": "claude-sonnet-4-6",
+  "messages": [
+    {"role": "system", "content": $(jq -Rs '.' <<< "$RUNBOOK_CONTENT")},
+    {"role": "user", "content": "Execute the runbook with parameters: results_dir=/app/results"}
+  ],
+  "stream": false,
+  "jetty": {
+    "runbook": true,
+    "collection": "{COLLECTION}",
+    "task": "{TASK}",
+    "agent": "claude-code"
+  }
+}
+PAYLOAD
+```
+
+5. Extract the trajectory ID from the response
+6. Monitor the trajectory using the standard trajectory inspection commands:
+   ```bash
+   curl -s -H "Authorization: Bearer $TOKEN" \
+     "https://flows-api.jetty.io/api/v1/db/trajectory/{COLLECTION}/{TASK}/{TRAJECTORY_ID}" | jq '{status, steps: (.steps | keys)}'
+   ```
+
+#### Chat Completions API Reference
+
+The chat-completions endpoint supports two modes via a single URL:
+
+| Mode | Trigger | Behavior |
+|------|---------|----------|
+| **Passthrough** | No `jetty` block | OpenAI-compatible LLM proxy — streams tokens from 100+ providers |
+| **Runbook** | `jetty` block present | Full agent execution in an isolated sandbox |
+
+**Jetty block fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `jetty.runbook` | boolean | Yes | Enable runbook/agent mode |
+| `jetty.collection` | string | Yes | Namespace for the task |
+| `jetty.task` | string | Yes | Task identifier |
+| `jetty.agent` | string | Yes | `claude-code`, `codex`, or `gemini-cli` |
+| `jetty.file_paths` | string[] | No | Files to upload into the sandbox |
+
+**File upload** (if the runbook needs input files):
+```bash
+# Upload a file first
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/path/to/input.csv" \
+  -F "collection={COLLECTION}" \
+  "https://flows-api.jetty.io/api/v1/files/upload" | jq
+
+# Then reference the returned path in file_paths
+```
+
+**With the OpenAI Python SDK:**
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://flows-api.jetty.io",
+    api_key="your-jetty-api-token"
+)
+
+# Read runbook
+with open("RUNBOOK.md") as f:
+    runbook = f.read()
+
+response = client.chat.completions.create(
+    model="claude-sonnet-4-6",
+    messages=[
+        {"role": "system", "content": runbook},
+        {"role": "user", "content": "Execute the runbook"}
+    ],
+    stream=True,
+    extra_body={
+        "jetty": {
+            "runbook": True,
+            "collection": "my-org",
+            "task": "my-task",
+            "agent": "claude-code",
+        }
+    }
+)
+```
+
+**Sandbox conventions:**
+- `{{results_dir}}` defaults to `/app/results` on Jetty (vs `./results` locally)
+- Everything written to `/app/results/` is persisted to cloud storage
+- Secrets resolve from collection environment variables
+- The sandbox is destroyed after execution — artifacts and logs survive
+
 ### Datasets & Models
 
 ```bash
