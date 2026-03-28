@@ -179,7 +179,7 @@ Before running the demo, store your AI provider key in your collection's environ
 
 ## Available MCP Tools
 
-Once connected, your agent has access to 14 tools:
+Once connected, your agent has access to 16 tools:
 
 | Tool | Description |
 |------|-------------|
@@ -197,12 +197,14 @@ Once connected, your agent has access to 14 tools:
 | `add-label` | Label a trajectory (e.g., quality=high) |
 | `list-step-templates` | List available step templates |
 | `get-step-template` | Get template details and schema |
+| `check-secrets` | Check which env vars a collection has vs. what a runbook needs |
+| `set-environment-vars` | Set or delete environment variables on a collection |
 
 ---
 
 ## Claude Code Skills
 
-The plugin adds two skills for richer Claude Code integration:
+The plugin adds three skills for richer Claude Code integration:
 
 ### `/jetty-setup` — Guided Onboarding
 Interactive wizard that handles account creation, API key storage, provider selection (OpenAI or Gemini), and runs a demo workflow — all in under 5 minutes.
@@ -217,6 +219,97 @@ Interactive wizard that handles account creation, API key storage, provider sele
 /jetty create a task called test-echo in my-project using text_echo
 /jetty add label quality=high to trajectory abc123 in my-project/my-task
 ```
+
+### `/jetty create-runbook` — Guided Runbook Creator
+
+Interactive wizard that walks you through building a runbook step by step — choose an evaluation pattern, define parameters and secrets, and generate a complete runbook ready to run.
+
+---
+
+## Runbooks
+
+A **runbook** is a structured markdown document that tells a coding agent how to accomplish a complex, multi-step task with built-in evaluation loops and quality gates. Think of it as an executable playbook: your agent reads the runbook, executes each step, evaluates its own output, and iterates until quality criteria are met.
+
+### Key Features
+
+- **Outcome-oriented** — defines what must be true when done, not just procedure steps
+- **Self-evaluating** — built-in evaluate → refine → re-evaluate loops (max 3 rounds)
+- **Parameterized** — uses `{{param}}` template variables for reuse across inputs and environments
+- **Secrets-aware** — declares sensitive credentials in frontmatter, resolved securely at runtime
+- **Versioned** — carries a semantic version in YAML frontmatter for reproducibility
+
+### Evaluation Patterns
+
+| Pattern | Use Case | How It Works |
+|---------|----------|--------------|
+| **Programmatic** | Data pipelines, code generation, structured output | Validates against schema, API, or test suite — objective pass/fail |
+| **Rubric** | Creative content, analysis, complex reports | Scores across multiple criteria on a 1–5 scale — subjective quality |
+
+### Runbook Structure
+
+Every runbook follows a mandatory structure:
+
+1. **Frontmatter** — version, evaluation type, secrets declarations
+2. **Objective** — what the runbook accomplishes (2–5 sentences)
+3. **Output Manifest** — files the agent must create
+4. **Parameters** — configurable inputs with defaults
+5. **Dependencies** — workflows, APIs, credentials, packages
+6. **Steps** — sequential processing (API calls, transformations, etc.)
+7. **Evaluation** — status table (programmatic) or rubric scoring
+8. **Iteration** — up to 3 refinement rounds with common-fix guidance
+9. **Validation Report** — standardized `validation_report.json`
+10. **Final Checklist** — verification script and exit gate
+
+### Getting Started with Runbooks
+
+**Claude Code users:** Run `/jetty create-runbook` for a guided wizard that generates a complete runbook from starter templates.
+
+For full documentation, see [`docs/PRD-runbooks.md`](docs/PRD-runbooks.md).
+
+---
+
+## Secrets Management
+
+Jetty provides secure handling of API keys and credentials so they never leak into logs, trajectories, or workflow outputs.
+
+### How Secrets Work
+
+Secrets are declared in runbook frontmatter and resolved at runtime through a 3-level fallback:
+
+1. **OS environment variable** matching the `env` field
+2. **`.env` file** in the runbook directory (should be `.gitignore`d)
+3. **Interactive prompt** (if `required: true` and not found above)
+
+When running on Jetty, secrets resolve from your **collection's environment variables** — set once, available to all workflows in that collection.
+
+### Declaring Secrets in a Runbook
+
+```yaml
+secrets:
+  OPENAI_API_KEY:
+    env: OPENAI_API_KEY
+    description: "OpenAI API key for LLM calls"
+    required: true
+  LANGFUSE_SECRET_KEY:
+    env: LANGFUSE_SECRET_KEY
+    description: "Langfuse API secret key"
+    required: false
+```
+
+Reference secrets in runbook steps as `{{secrets.OPENAI_API_KEY}}` — distinct from regular `{{params}}`.
+
+### MCP Tools for Secrets
+
+| Tool | Description |
+|------|-------------|
+| `check-secrets` | Verify which env vars a collection has vs. what a runbook needs — returns configured, missing, and ready status |
+| `set-environment-vars` | Set or delete environment variables on a collection (merge semantics, pass `null` to delete a key) |
+
+### Security Guarantees
+
+- Secrets are **never stored** in `init_params`, trajectories, or output files
+- The `secret_params` API field merges credentials into the runtime environment without persisting them
+- Collection environment variables are stored server-side and never returned in plain text after creation
 
 ---
 
