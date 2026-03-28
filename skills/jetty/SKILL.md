@@ -191,6 +191,55 @@ curl -s "https://flows-api.jetty.io/api/v1/step-templates" | jq '[.templates[] |
 curl -s "https://flows-api.jetty.io/api/v1/step-templates" | jq '.templates[] | select(.activity_name == "litellm_chat")'
 ```
 
+### Environment Variable Management
+
+```bash
+# List environment variable keys for a collection
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://flows-api.jetty.io/api/v1/collections/{COLLECTION}/environment" | jq 'keys'
+
+# Set an environment variable (merge semantics — other vars preserved)
+# Use stdin to avoid exposing the value in process args
+cat <<'BODY' | curl -s -X PATCH -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://flows-api.jetty.io/api/v1/collections/{COLLECTION}/environment" \
+  --data-binary @-
+{"environment_variables": {"KEY_NAME": "value"}}
+BODY
+
+# Remove an environment variable (pass null to delete)
+curl -s -X PATCH -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://flows-api.jetty.io/api/v1/collections/{COLLECTION}/environment" \
+  -d '{"environment_variables": {"KEY_NAME": null}}'
+
+# Check which secrets a runbook needs vs what's configured
+# 1. Parse the runbook's frontmatter secrets block
+# 2. GET the collection's environment variable keys
+# 3. Compare and report missing
+```
+
+### Deploy with Secret Preflight
+
+When deploying a runbook as a Jetty task:
+
+1. Parse the runbook's YAML frontmatter for a `secrets` block
+2. Extract required env var names from `secrets.*.env`
+3. Check the target collection's configured environment variables
+4. If any required secrets are missing, prompt the user to set them before proceeding
+5. Package only non-secret parameters as `init_params` in the run request
+6. Secrets are accessed by steps via collection environment variables at runtime
+
+The run request supports `secret_params` for ad-hoc secret passing:
+```bash
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
+  -F 'init_params={"prompt": "analyze this"}' \
+  -F 'secret_params={"TEMP_API_KEY": "sk-..."}' \
+  "https://flows-api.jetty.io/api/v1/run/{COLLECTION}/{TASK}"
+```
+
+`secret_params` are merged into the runtime environment (same as collection env vars) but are NEVER stored in the trajectory. Use this for one-off runs; for production, configure secrets as collection environment variables.
+
 ### Datasets & Models
 
 ```bash

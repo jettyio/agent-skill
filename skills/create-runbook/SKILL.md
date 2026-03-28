@@ -210,7 +210,34 @@ Use AskUserQuestion:
 
 For each selected category, ask a follow-up for specifics (workflow names, API URLs, package names). Populate the Dependencies table and the Step 1 setup script via Edit.
 
-### 4e: Processing Steps
+### 4e: Secrets (Optional)
+
+Use AskUserQuestion:
+- Header: "Secrets"
+- Question: "Does this runbook need any API keys, tokens, or other credentials?"
+- Options:
+  - "Yes" / "I need to declare secrets for API keys or credentials"
+  - "No" / "No sensitive parameters needed"
+
+If yes, for each secret collect via AskUserQuestion:
+- Logical name (e.g., `OPENAI_API_KEY`)
+- Collection environment variable name (usually same as logical name)
+- Description
+- Required or optional
+
+Populate the `secrets` block in frontmatter with the collected values. For example:
+
+```yaml
+secrets:
+  OPENAI_API_KEY:
+    env: OPENAI_API_KEY
+    description: "OpenAI API key for embeddings"
+    required: true
+```
+
+Also add a verification block in Step 1 (Environment Setup) that checks each required secret is available as an environment variable.
+
+### 4f: Processing Steps
 
 Based on the task description, propose a sequence of processing steps. Show the user your proposed outline. Use AskUserQuestion:
 - Header: "Processing Steps"
@@ -227,7 +254,7 @@ Apply changes via Edit. For each confirmed step, write a skeleton with:
 - Placeholder for API calls or code snippets: `{TODO: add API call examples and expected response format}`
 - Placeholder for error handling: `{TODO: add error handling for common failures}`
 
-### 4f: Evaluation Criteria
+### 4g: Evaluation Criteria
 
 This is the most important section. Branch based on the evaluation pattern:
 
@@ -260,7 +287,7 @@ If they provide criteria, build the rubric table with rows for each. For each cr
 
 Update the rubric table via Edit.
 
-### 4g: Common Fixes (optional)
+### 4h: Common Fixes (optional)
 
 Use AskUserQuestion:
 - Header: "Common Fixes"
@@ -271,7 +298,7 @@ Use AskUserQuestion:
 
 If they provide issues, populate the Common Fixes table via Edit. If skipped, leave the placeholder rows.
 
-### 4h: Tips (optional)
+### 4i: Tips (optional)
 
 Use AskUserQuestion:
 - Header: "Tips"
