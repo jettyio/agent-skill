@@ -314,10 +314,9 @@ export function registerTools(server: McpServer, client: JettyClient) {
         .describe("Environment variable names the runbook requires"),
     },
     async ({ collection, required_keys }) => {
-      const col = (await client.getCollection(collection)) as Record<
-        string,
-        unknown
-      >;
+      const col = (await client.getCollectionEnvironment(
+        collection
+      )) as Record<string, unknown>;
       const envVars = (col.environment_variables || {}) as Record<
         string,
         unknown
