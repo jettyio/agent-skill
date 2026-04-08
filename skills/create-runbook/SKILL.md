@@ -528,8 +528,41 @@ Tell the user:
 > Open the runbook in a new conversation and tell the agent to follow it:
 > *"Follow the runbook in ./RUNBOOK.md. Use these parameters: results_dir=./results, {other params}..."*
 >
-> **Deploy as a Jetty task:**
-> `/jetty create task` — paste the runbook content as the task's agent instructions, and set parameters via `init_params`
+> **Run it on Jetty (recommended):**
+> Use the chat-completions endpoint with a `jetty` block — this is the single API call that configures *everything*: which agent runs it, which collection it belongs to, and what files to upload into the sandbox.
+>
+> ```bash
+> curl -X POST "https://flows-api.jetty.io/v1/chat/completions" \
+>   -H "Authorization: Bearer $JETTY_API_TOKEN" \
+>   -H "Content-Type: application/json" \
+>   -d '{
+>     "model": "{model from frontmatter}",
+>     "messages": [
+>       {"role": "system", "content": "<contents of your RUNBOOK.md>"},
+>       {"role": "user", "content": "Execute the runbook."}
+>     ],
+>     "stream": true,
+>     "jetty": {
+>       "runbook": true,
+>       "collection": "{your-collection}",
+>       "task": "{task-name}",
+>       "agent": "{agent from frontmatter}",
+>       "file_paths": []
+>     }
+>   }'
+> ```
+>
+> The `jetty` block fields map directly to your runbook's frontmatter:
+> | Frontmatter field | `jetty` block field | Purpose |
+> |---|---|---|
+> | `agent` | `jetty.agent` | Which agent CLI runs the runbook (`claude-code`, `codex`, `gemini-cli`) |
+> | `model` | `model` (top-level) | Which LLM the agent uses |
+> | `snapshot` | *(auto-selected)* | Sandbox environment — set via collection config |
+> | — | `jetty.collection` | Namespace that holds your env vars and secrets |
+> | — | `jetty.task` | Task name for grouping trajectories |
+> | — | `jetty.file_paths` | Files to upload into the sandbox workspace |
+>
+> Or use `/jetty run runbook` to have the agent build this request for you interactively.
 >
 > **Iterate on the runbook:**
 > After your first few runs, come back and:
